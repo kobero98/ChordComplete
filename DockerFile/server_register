@@ -1,0 +1,6 @@
+FROM golang:1.17-alpine
+COPY ../Server/Utility.go /app/Utility.go
+COPY ../Server/server_register.go /app/server_register.go
+WORKDIR /app
+RUN  go build server_register.go Utility.go
+ENTRYPOINT [ "./server_register"]

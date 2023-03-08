@@ -1,0 +1,8 @@
+FROM golang:1.17-alpine
+COPY ../Server/Utility.go /app/Utility.go
+COPY ../Server/FunzioniEsposte.go /app/FunzioniEsposte.go
+COPY ../Server/FunzioniInterne.go /app/FunzuiniInterne.go
+COPY ../Server/nodo.go /app/nodo.go
+WORKDIR /app
+RUN go build -o nodo nodo.go FunzioniEsposte.go FunzuiniInterne.go Utility.go 
+ENTRYPOINT [ "./nodo"]
