@@ -16,6 +16,7 @@ type appoggio struct {
 	nodo   Node
 	status int
 	lista_Duplicati []Node
+	lista_Indici_Liberi []int
 	contatoreRepliche int
 }
 var Num_Repl int
@@ -154,7 +155,7 @@ func updateListaReplica(nodeToContact Node,nodeToPass Node) int {
 }
 func controlloElementoGiaInserito(i int,nodo Node) bool {
 	j:=0
-	for j<lista_nodi[i].contatoreRepliche{
+	for j<len(lista_nodi[i].lista_Duplicati){
 		if lista_nodi[i].lista_Duplicati[j].PortExtern==nodo.PortExtern{
 			return true
 		}
@@ -162,53 +163,74 @@ func controlloElementoGiaInserito(i int,nodo Node) bool {
 	}
 	return false
 }
+func controlloIndiceLibero(i int) int {
+	for j:=0;j<len(lista_nodi[i].lista_Indici_Liberi);j++{
+		if lista_nodi[i].lista_Indici_Liberi[j]!=-1{
+			return j
+		}
+	}
+	return -1
+}
 //un nodo ti contatta se il leader non esiste gestisce lui la risorsa altrimenti diventa follower
 func (t *Manager) Register(param *ParamRegister, reply *ReplyRegistration) error {
-	fmt.Println("un nodo si é connesso", count, request)
-	fmt.Println(*param)
 	//aggiungere ulteriore controllo di veridicità del nodo
 	i:=ControlloEsistenzaLeader(param.Nodo.Index) 
 	if i!=-1 && lista_nodi[i].nodo.PortExtern!=param.Nodo.PortExtern {
+		//se é vero questo allora abbiamo già un main node e questa é chiaramente una replica
 		if controlloElementoGiaInserito(i,param.Nodo) {
 			//se il nodo é già presente, invio un messaggio contenente le vecchie informazioni
 			reply.Leader=lista_nodi[i].nodo
-			reply.NumRep=lista_nodi[i].contatoreRepliche
+			k:=-1
+			for j:=0;j<len(lista_nodi[i].lista_Duplicati);j++{
+				if lista_nodi[i].lista_Duplicati[j].PortExtern == param.Nodo.PortExtern{
+					k=j
+				}
+			}
+			reply.NumRep=k
 			reply.IsReplica=true
 			reply.Precedente, reply.Successivo = get_PrecSucc(param.Nodo)
-			if lista_nodi[i].status==0{
+			if lista_nodi[i].status==0 {
 				reply.IsReplica=false
 				return nil
 			}
-		} else if lista_nodi[i].contatoreRepliche<Num_Repl{
-			lista_nodi[i].lista_Duplicati[lista_nodi[i].contatoreRepliche]=param.Nodo
-			fmt.Println("contatore repliche pre: ",lista_nodi[i].contatoreRepliche)
-			lista_nodi[i].contatoreRepliche=lista_nodi[i].contatoreRepliche+1
-			fmt.Println("contatore repliche post: ",lista_nodi[i].contatoreRepliche)
-			//aggiungere comunicazione verso il leader
-			reply.Leader=lista_nodi[i].nodo
-			reply.NumRep=lista_nodi[i].contatoreRepliche
-			reply.IsReplica=true
-			reply.Precedente, reply.Successivo = get_PrecSucc(param.Nodo)
-			if lista_nodi[i].status==0{
-				reply.IsReplica=false
+		} else {
+			lib:=controlloIndiceLibero(i)
+			if lib!=-1{
+				param.Nodo.IDRep=lib
+				lista_nodi[i].lista_Duplicati[lib]=param.Nodo
+				lista_nodi[i].lista_Indici_Liberi[lib]=-1
+				//aggiungere comunicazione verso il leader
+				reply.Leader=lista_nodi[i].nodo
+				reply.NumRep=lib
+				reply.IsReplica=true
+				reply.Precedente, reply.Successivo = get_PrecSucc(param.Nodo)
+				if lista_nodi[i].status==0{
+					reply.IsReplica=false
+					return nil
+				}
+				if updateListaReplica(lista_nodi[i].nodo,param.Nodo)==-1 {
+					lista_nodi[i].lista_Indici_Liberi[lib]=lib
+				}
+				return nil
+			}else{
+				//aggiungere cosa bisogna mettere in caso di saturazione delle repliche
+				reply.IsReplica=true
+				reply.Leader=param.Nodo
 				return nil
 			}
-			if updateListaReplica(lista_nodi[i].nodo,param.Nodo)==-1 {
-				lista_nodi[i].contatoreRepliche=lista_nodi[i].contatoreRepliche-1
-			}
-			return nil
-		}else{
-			//aggiungere cosa bisogna mettere in caso di saturazione delle repliche
-			reply.IsReplica=true
-			reply.Leader=param.Nodo
-			return nil
 		}
 	}
+
 	var a appoggio
 	a.nodo = param.Nodo
+	a.nodo.IDRep = 0
 	a.status = 0
 	a.contatoreRepliche=0
 	a.lista_Duplicati=make([]Node,Num_Repl)
+	a.lista_Indici_Liberi=make([]int,Num_Repl)
+	for indice_libero:=0;indice_libero<Num_Repl;indice_libero++{
+		a.lista_Indici_Liberi[indice_libero]=indice_libero
+		}
 	contr := add_elemento(a)
 	if contr == -2 {
 		reply = nil
@@ -221,16 +243,18 @@ func (t *Manager) Register(param *ParamRegister, reply *ReplyRegistration) error
 	}
 	reply.Precedente, reply.Successivo = get_PrecSucc(param.Nodo)
 	reply.NumRep = 0
+	reply.Leader = param.Nodo
 	reply.IsReplica= false
 	return nil
 }
+
 func (t *Manager) Unregister(node *Node, reply *Node) error {
 	fmt.Println("un nodo si é disconnesso")
 	count = count - 1
 	reply = nil
 	return nil
 }
-
+//funzione al momento da rivedere
 func heartBit() {
 	for true {
 		for i := 0; i < len(lista_nodi); i++ {
@@ -253,7 +277,7 @@ func heartBit() {
 				client.Close()
 			}
 		}
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -273,7 +297,32 @@ func (t *Manager) ContactClient(value *int, reply *Node) error {
 		return nil
 	}
 }
-
+func (t *Manager) ChangeLeader(newNode *Node,reply *int)error{
+	fmt.Println("cambio Leader")
+	i:=ControlloEsistenzaLeader(newNode.Index)
+	if i== -1 {
+		fmt.Println("ci devo pensare")
+	}else{
+		var newLeader Node
+		newLeader.Name=newNode.Name
+		newLeader.Port=newNode.Port
+		newLeader.PortExtern=newNode.PortExtern
+		newLeader.Index=newNode.Index
+		newLeader.Ip=newNode.Ip
+		newLeader.IDRep=newNode.IDRep
+		lista_nodi[i].nodo=newLeader
+		for j:=0;j<len(lista_nodi[i].lista_Duplicati);j++{
+			if lista_nodi[i].lista_Duplicati[j].PortExtern == newNode.PortExtern {
+				lista_nodi[i].lista_Indici_Liberi[j]=j
+				lista_nodi[i].lista_Duplicati[j].Name=""
+				lista_nodi[i].lista_Duplicati[j].Index=0
+				lista_nodi[i].lista_Duplicati[j].Port=0
+				lista_nodi[i].lista_Duplicati[j].PortExtern=0
+			}
+		}
+	}
+	return nil
+}
 func main() {
 	Num_Repl,_ =strconv.Atoi(os.Getenv("REPLICHE")) 
 	fmt.Println("inizio programma in go")

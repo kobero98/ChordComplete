@@ -39,3 +39,21 @@ func (t *ChordNode) UpdateList(newNode *Node,reply *int) error{
 	Lista_Eguali=append(Lista_Eguali,*newNode)
 	return nil
 } 
+func remove(slice []Node, s int) []Node {
+    return append(slice[:s], slice[s+1:]...)
+}
+func (t*ChordNode) NewLeader(newLeader *Node,reply *int)error{
+	Leader=*newLeader 
+	index:=-1
+	for i:=0;i<len(Lista_Eguali);i++{
+		//questa condizione if andrà modificata se i container fossero allocati su macchine differenti
+		//per ora va bene cosi
+		if Lista_Eguali[i].PortExtern==newLeader.PortExtern{
+			index=i
+		}
+	}
+	if index!=-1{
+		Lista_Eguali=remove(Lista_Eguali,index)
+	}
+	return nil
+}

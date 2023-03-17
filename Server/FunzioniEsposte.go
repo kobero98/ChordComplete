@@ -85,7 +85,6 @@ func (t *ChordNode) Remove(key *int, reply *string) error {
 //funzione che prende una risorsa in base alla chiave
 func (t *ChordNode) Get(key *int, reply *string) error {
 	if isReplica {
-		*reply=-1
 		return nil
 	}
 	fmt.Println("mi hanno contattato per la chiave: ", *key)
@@ -103,7 +102,8 @@ func (t *ChordNode) Get(key *int, reply *string) error {
 		fmt.Println(appNode)
 		client, err := rpc.DialHTTP("tcp", appNode.Ip[0]+":"+strconv.Itoa(appNode.Port))
 		if err != nil {
-			log.Fatal("dialing:", err)
+			myPrecedente, mySuccessivo = init_registration()
+			fmt.Println("ri ottentimento del precedente e del successivo")
 		}
 		err = client.Call("ChordNode.Get", key, reply)
 		if err != nil {
@@ -111,6 +111,31 @@ func (t *ChordNode) Get(key *int, reply *string) error {
 		}
 	}
 	return nil
+}
+func (t *ChordNode) UpdateReplica(param *ParamUpdateReplica,reply *int) error {
+	myMap[param.Key]=param.Parola
+	return nil
+}
+func updateReplicaBase(key int, parola string){
+	i:=0
+	for i<len(Lista_Eguali){
+		client, err := rpc.DialHTTP("tcp", Lista_Eguali[i].Ip[0]+":"+strconv.Itoa(Lista_Eguali[i].Port))
+		if err != nil {
+			//gestire errore uno dei nodi crasha
+			return 
+		}
+		var param ParamUpdateReplica
+		param.Key=key
+		param.Parola=parola
+		var reply int
+		err = client.Call("ChordNode.UpdateReplica", &param, &reply)
+		if err != nil {
+			fmt.Println("Errore Update Replica",Lista_Eguali[i],err)
+			return 
+		}
+		client.Close()
+		i=i+1
+	}
 }
 //funzione che mette nell'anello una stringa
 func (t *ChordNode) Put(parola *string, reply *int) error {
@@ -123,10 +148,10 @@ func (t *ChordNode) Put(parola *string, reply *int) error {
 	fmt.Println("la chiave  é ", key)
 	fmt.Println("io mi occupo di: ", myPrecedente.Index+1, myNode.Index)
 	if checkMyKey2(key) {
-		UpdateReplica(key,*parola)
+		updateReplicaBase(key,*parola)
 		myMap[key] = *parola
 	} else {
-		PrintFingerTable()
+		//PrintFingerTable()
 		appNode:=nodeToContact(key)
 		fmt.Println("Nodo scelto: ",appNode," IP:",appNode.Ip[0],"port: ",appNode.Port)
 		client, err := rpc.DialHTTP("tcp", appNode.Ip[0]+":"+strconv.Itoa(appNode.Port))
@@ -138,7 +163,7 @@ func (t *ChordNode) Put(parola *string, reply *int) error {
 		err = client.Call("ChordNode.Put", parola, reply)
 		if err != nil {
 			myPrecedente, mySuccessivo = init_registration()
-			//log.Fatal("arith error:", err)
+			log.Fatal("arith error:", err)
 			fmt.Println("ri ottentimento del precedente e del successivo")
 			return err
 		}

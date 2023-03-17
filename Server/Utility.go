@@ -6,6 +6,7 @@ type Node struct {
 	Port       int
 	PortExtern int
 	Index      int
+	IDRep	   int
 }
 type ReplyRegistration struct {
 	Precedente Node
@@ -17,4 +18,8 @@ type ReplyRegistration struct {
 type ParamRegister struct {
 	Nodo Node
 	Codice int
+}
+type ParamUpdateReplica struct{
+	Key int
+	Parola string
 }

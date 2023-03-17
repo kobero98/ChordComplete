@@ -20,7 +20,8 @@ def create(Num_Nodi,Num_Repliche):
 	for i in range(1,Num_Nodi+1):
 		for j in range(1,Num_Repliche+1):
 			ID=str(8000+i*100+j)
-			GID=str(8000+i)
+			GID=str(8000+i*100)
+			First=str(8000+i*100+1)
 			file.write("  nodo"+ID+":\n")
 			file.write("    container_name: nodo"+ID+"\n")
 			file.write("    hostname: nodo"+ID+"\n")
@@ -34,6 +35,8 @@ def create(Num_Nodi,Num_Repliche):
 			file.write("      - CODICE_HASH="+GID+"\n")
 			file.write("    depends_on:\n")
 			file.write("      - registration_server\n")
+			if j!=1:
+				file.write("      - nodo"+First+"\n")
 			file.write("    networks:\n")
 			file.write("      - mynetwork\n")
 	file.write("networks:\n")
