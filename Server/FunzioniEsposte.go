@@ -23,14 +23,14 @@ func nodeToContact(key int) Node{
 	if checkKey(key,myNode.Index,FingerTable[0].Index){
 		return FingerTable[0]
 	}
-	for i<NBit {
+	for i<NBit-1 {
 		if checkKey(key,FingerTable[i].Index,FingerTable[i+1].Index){
 			fmt.Println("indice ",i)
 			return FingerTable[i]
 		}
 		i=i+1
 	}
-	return FingerTable[NBit]
+	return FingerTable[NBit-1]
 }
 func calcolo_hash(text string) int {
 	hash := md5.Sum([]byte(text))

@@ -3,6 +3,7 @@ import (
 	"net/rpc"
 	"log"
 	"strconv"
+	"fmt"
 )
 func (t *ChordNode) ObtainNode(key *int, node *Node) error {
 	//fmt.Println("mi hanno contattato per la chiave: ", *key)
@@ -13,10 +14,14 @@ func (t *ChordNode) ObtainNode(key *int, node *Node) error {
 	} else {
 		client, err := rpc.DialHTTP("tcp", mySuccessivo.Ip[0]+":"+strconv.Itoa(mySuccessivo.Port))
 		if err != nil {
-			log.Fatal("mynode ",myNode,"dialing:", err)
+			//devo riottenre il prec e il succ
+			myPrecedente, mySuccessivo = init_registration()
+			fmt.Println("ri ottentimento del precedente e del successivo")
+			return err
 		}
 		err = client.Call("ChordNode.ObtainNode", key, node)
 		if err != nil {
+			//qua ci sta un problema della chiamata
 			log.Fatal("arith error:", err)
 		}
 	}

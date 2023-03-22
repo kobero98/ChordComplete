@@ -247,7 +247,7 @@ func (t *Manager) Register(param *ParamRegister, reply *ReplyRegistration) error
 	reply.IsReplica= false
 	return nil
 }
-
+// non utilizzata per ora
 func (t *Manager) Unregister(node *Node, reply *Node) error {
 	fmt.Println("un nodo si é disconnesso")
 	count = count - 1
@@ -277,7 +277,7 @@ func heartBit() {
 				client.Close()
 			}
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 }
 
@@ -320,6 +320,7 @@ func (t *Manager) ChangeLeader(newNode *Node,reply *int)error{
 				lista_nodi[i].lista_Duplicati[j].PortExtern=0
 			}
 		}
+		lista_nodi[i].status=1
 	}
 	return nil
 }
