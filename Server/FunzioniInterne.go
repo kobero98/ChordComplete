@@ -57,3 +57,13 @@ func (t*ChordNode) NewLeader(newLeader *Node,reply *int)error{
 	}
 	return nil
 }
+func (t*ChordNode) ObtainMapData(nodo *Node,reply *map[int]string) error{
+	for i:=0;i<len(Lista_Eguali);i++{
+		//questa condizione deve cambiare in caso il sistema si sposti su pù macchine
+		if Lista_Eguali[i].PortExtern==nodo.PortExtern{
+			*reply=myMap
+			return nil
+		}
+	}
+	return nil
+}

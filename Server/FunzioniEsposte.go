@@ -6,15 +6,6 @@ import ("crypto/md5"
 	"strconv"
 )
 func checkKey(key int,precedente int,successivo int)bool{
-	/*
-	if key-precedente >= 0 && key-successivo<0 {
-		return true
-	}
-	if precedente>successivo {
-		return successivo-key>0 || key-precedente>0
-	}
-	return false
-	*/
 	if successivo-precedente==0{
 		return false
 	}
@@ -27,28 +18,35 @@ func checkKey(key int,precedente int,successivo int)bool{
 }
 
 func nodeToContact(key int) Node{
+	fmt.Println("myFinger Table: ",FingerTable)
 	i:=0
 	if checkKey(key,myNode.Index,FingerTable[0].Index){
 		return FingerTable[0]
 	}
-	for i<7 {
+	for i<NBit {
 		if checkKey(key,FingerTable[i].Index,FingerTable[i+1].Index){
 			fmt.Println("indice ",i)
 			return FingerTable[i]
 		}
 		i=i+1
 	}
-	fmt.Println("indice ",7)
-	return FingerTable[7]
+	return FingerTable[NBit]
 }
 func calcolo_hash(text string) int {
 	hash := md5.Sum([]byte(text))
-	var test byte
-	test = 0
-	for i := 0; i < 8; i++ {
-		test = hash[i] ^ test
+	x:=int(NBit/8)
+	test:= make([]byte,x)
+	var i int
+	for i = 0; i < len(hash); i++ {
+		test[i%x] = hash[i] ^ test[i%x]
 	}
-	return int(test)
+    result :=0
+	//DA MODIFICARE
+	for i =0; i < x; i++{
+
+		result = result + int(test[i])<<(8*i)
+	}
+	return result
 }
 func checkMyKey2(key int) bool {
 	//forse bastava fare se minore del myIndex.precede
@@ -122,7 +120,8 @@ func updateReplicaBase(key int, parola string){
 		client, err := rpc.DialHTTP("tcp", Lista_Eguali[i].Ip[0]+":"+strconv.Itoa(Lista_Eguali[i].Port))
 		if err != nil {
 			//gestire errore uno dei nodi crasha
-			return 
+			fmt.Println("Uno dele repliche non é più up ",err,)
+			continue
 		}
 		var param ParamUpdateReplica
 		param.Key=key

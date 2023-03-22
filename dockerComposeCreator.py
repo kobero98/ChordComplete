@@ -1,6 +1,6 @@
 import sys
 
-def create(Num_Nodi,Num_Repliche):
+def create(Num_Nodi,Num_Repliche,Num_Bit):
 	numRep=str(Num_Repliche)
 	file=open("Docker-compose.yaml","w")
 	file.write("version: \"3.9\"\n")
@@ -15,6 +15,7 @@ def create(Num_Nodi,Num_Repliche):
 	file.write("      - 8000:8000\n")
 	file.write("    environment:\n")
 	file.write("      - REPLICHE="+numRep+"\n")
+	file.write("      - BIT="+Num_Bit+"\n")
 	file.write("    networks:\n")
 	file.write("      - mynetwork\n")
 	for i in range(1,Num_Nodi+1):
@@ -33,6 +34,7 @@ def create(Num_Nodi,Num_Repliche):
 			file.write("    environment:\n")
 			file.write("      - PORT_EXSPOST="+ID+"\n")
 			file.write("      - CODICE_HASH="+GID+"\n")
+			file.write("      - BIT="+Num_Bit+"\n")
 			file.write("    depends_on:\n")
 			file.write("      - registration_server\n")
 			if j!=1:
@@ -44,4 +46,5 @@ def create(Num_Nodi,Num_Repliche):
 	file.write("   name: network1234\n")
 z=int(sys.argv[1])
 z2=int(sys.argv[2])
-create(z,z2)
+z3=sys.argv[3]
+create(z,z2,z3)

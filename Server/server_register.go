@@ -10,7 +10,6 @@ import (
 	"time"
 	"os"
 )
-
 type Manager int
 type appoggio struct {
 	nodo   Node
@@ -23,6 +22,7 @@ var Num_Repl int
 var lista_nodi []appoggio
 var count = 0
 var request = 0
+var NBit = 0
 
 func printList() {
 	fmt.Println("dimensione lista", len(lista_nodi))

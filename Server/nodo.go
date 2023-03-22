@@ -13,7 +13,7 @@ import (
 
 type ChordNode int
 var myMap map[int]string
-var FingerTable [8] Node //lista FingerTable
+var FingerTable [] Node //lista FingerTable
 var Lista_Eguali [] Node  //lista Dei Nodi Replica
 var mySuccessivo Node  //nodo successivo
 var myPrecedente Node  //nodo precedente
@@ -22,9 +22,11 @@ var Addr_Server_register = "register"
 var isReplica bool
 var numRep int
 var Leader Node 
+var NBit = 0
 //variabile globale che rapresenta il nodo
 var myNode Node
 //funzione che contatta il server register e ritorna i nodi vicini
+
 func init_registration() (Node, Node) {
 	//effettuo la connessione al server register
 	client, err := rpc.DialHTTP("tcp", Addr_Server_register+":8000")
@@ -72,6 +74,8 @@ func init_Node() {
 	myNode.Ip = addr
 	myNode.Port = 8005
 	Indice_Hash:=os.Getenv("CODICE_HASH")
+	NBit,_ = strconv.Atoi(os.Getenv("BIT"))
+	FingerTable = make([]Node,NBit)
 	myNode.Index = calcolo_hash(Indice_Hash)
 	fmt.Println(myNode)
 }
@@ -91,7 +95,7 @@ func init_fingerTable(){
 	var i int
 	var key int
 	i=0
-	for app.Index != myNode.Index && i<8{
+	for app.Index != myNode.Index && i<NBit{
 		key=(myNode.Index+1<<i) % 256
 		client, err := rpc.DialHTTP("tcp", mySuccessivo.Ip[0]+":"+strconv.Itoa(mySuccessivo.Port))
 		if err != nil {
@@ -184,7 +188,6 @@ func ChangeStatus() {
 	client.Close()
 }
 func heartBitReplica() bool {
-	fmt.Println(Leader)
 	client, err := rpc.DialHTTP("tcp", Leader.Ip[0]+":"+strconv.Itoa(Leader.Port))
 	if err != nil {
 		fmt.Println("il nodo é morto")
@@ -252,6 +255,21 @@ func ChangeLeader() {
 		}
 	}
 }
+func takeMapData() {
+	client, err := rpc.DialHTTP("tcp", Leader.Ip[0]+":"+strconv.Itoa(Leader.Port))
+	if err != nil {
+		log.Fatal("Contact Leader fail in takeMyData",err)
+		return
+	}
+
+	err = client.Call("ChordNode.ObtainMapData", &myNode, &myMap)
+	if err != nil {
+		log.Fatal("Fail call ObtainMapData",err)
+		client.Close()
+		return 
+	}
+	client.Close()
+}
 func main() {
 	init_Node()
 	myMap = make(map[int]string)
@@ -265,6 +283,11 @@ func main() {
 		comunicationToPrecedente()
 		comunicationToSuccessivo()
 	}
+	if isReplica {
+		fmt.Println("Obtain Map")
+		takeMapData()
+		fmt.Println(myMap)
+	}
 	chord := new(ChordNode)
 	rpc.Register(chord)
 	rpc.HandleHTTP()
@@ -277,7 +300,6 @@ func main() {
 	go http.Serve(l, nil)
 	for true {
 		if isReplica {
-			fmt.Println("i am replica: ",myNode," my Leader is:",Leader)
 			if heartBitReplica() == false {
 				fmt.Println("nodo leader crashuato")
 				if algoritmoBullyInverso() {
