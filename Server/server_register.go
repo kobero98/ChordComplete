@@ -284,7 +284,6 @@ func heartBit() {
 var valore = 0
 
 func (t *Manager) ContactClient(value *int, reply *Node) error {
-	fmt.Println("mi hanno contattato")
 	if len(lista_nodi) < 1 {
 		reply = nil
 		return nil
@@ -294,6 +293,7 @@ func (t *Manager) ContactClient(value *int, reply *Node) error {
 		*&reply.Port = lista_nodi[index].nodo.PortExtern
 		*&reply.Ip = lista_nodi[index].nodo.Ip
 		*&reply.PortExtern = lista_nodi[index].nodo.PortExtern
+		valore=valore+1
 		return nil
 	}
 }
