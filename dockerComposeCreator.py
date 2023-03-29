@@ -20,9 +20,9 @@ def create(Num_Nodi,Num_Repliche,Num_Bit):
 	file.write("      - mynetwork\n")
 	for i in range(1,Num_Nodi+1):
 		for j in range(1,Num_Repliche+1):
-			ID=str(8000+i*100+j)
-			GID=str(8000+i*100)
-			First=str(8000+i*100+1)
+			ID=str(8000+j*100+i)
+			GID=str(8000+i)
+			First=str(8000+1*100+i)
 			file.write("  nodo"+ID+":\n")
 			file.write("    container_name: nodo"+ID+"\n")
 			file.write("    hostname: nodo"+ID+"\n")

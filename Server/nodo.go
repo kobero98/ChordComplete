@@ -97,7 +97,7 @@ func init_fingerTable(){
 	i=0
 	for app.Index != myNode.Index && i<NBit{
 		key=(myNode.Index+1<<i) % 256
-		client, err := rpc.DialHTTP("tcp", mySuccessivo.Ip[0]+":"+strconv.Itoa(mySuccessivo.Port))
+		client, err := rpc.DialHTTP("tcp", mySuccessivo.Name+":"+strconv.Itoa(mySuccessivo.Port))
 		if err != nil {
 			//log.Fatal("mynode ",myNode,"dialing:", err)
 			fmt.Println("Errore connessione successivo",mySuccessivo,err)
@@ -126,23 +126,25 @@ func init_fingerTable(){
 }
 //permette di tenere aggiornate e coerenti la fingertable ogni intervallo di tempo
 func finger_Table(){
-	for true {
-		myPrecedente, mySuccessivo = init_registration()
-		if myPrecedente.Name == "" && myPrecedente.Port == 0 {
-		myPrecedente = myNode
-		mySuccessivo = myNode
-		init_fingerTable()
-		} else {
+	//for true {
+		if isReplica == false{
+			myPrecedente, mySuccessivo = init_registration()
+			if myPrecedente.Name == "" && myPrecedente.Port == 0 {
+			myPrecedente = myNode
+			mySuccessivo = myNode
 			init_fingerTable()
-			comunicationToPrecedente()
-			comunicationToSuccessivo()
+			} else {
+				init_fingerTable()
+				comunicationToPrecedente()
+				comunicationToSuccessivo()
+			}
 		}
 		time.Sleep(10 * time.Second)
-	}
+	//}
 	return
 }
 func comunicationToSuccessivo() {
-	client, err := rpc.DialHTTP("tcp", mySuccessivo.Ip[0]+":"+strconv.Itoa(mySuccessivo.Port))
+	client, err := rpc.DialHTTP("tcp", mySuccessivo.Name+":"+strconv.Itoa(mySuccessivo.Port))
 	if err != nil {
 		fmt.Println("errore creazione del client con il successivo ",err,myNode,mySuccessivo)
 		//log.Fatal("mynode ",myNode,"dialing:", err)
@@ -158,7 +160,7 @@ func comunicationToSuccessivo() {
 	}
 	client.Close()}
 func comunicationToPrecedente() {
-	client, err := rpc.DialHTTP("tcp", myPrecedente.Ip[0]+":"+strconv.Itoa(myPrecedente.Port))
+	client, err := rpc.DialHTTP("tcp", myPrecedente.Name+":"+strconv.Itoa(myPrecedente.Port))
 	if err != nil {
 		//log.Fatal("mynode ",myNode,"dialing:", err)
 		fmt.Println("errore creazione del client con il precedente ",err,myNode,myPrecedente)
@@ -188,7 +190,7 @@ func ChangeStatus() {
 	client.Close()
 }
 func heartBitReplica() bool {
-	client, err := rpc.DialHTTP("tcp", Leader.Ip[0]+":"+strconv.Itoa(Leader.Port))
+	client, err := rpc.DialHTTP("tcp", Leader.Name+":"+strconv.Itoa(Leader.Port))
 	if err != nil {
 		fmt.Println("il nodo é morto")
 		return false
@@ -206,7 +208,7 @@ func heartBitReplica() bool {
 func algoritmoBullyInverso() bool {
 	for i:=0;i<len(Lista_Eguali);i++{
 		if Lista_Eguali[i].IDRep < numRep{
-			client, err := rpc.DialHTTP("tcp", Lista_Eguali[i].Ip[0]+":"+strconv.Itoa(Lista_Eguali[i].Port))
+			client, err := rpc.DialHTTP("tcp", Lista_Eguali[i].Name+":"+strconv.Itoa(Lista_Eguali[i].Port))
 			if err == nil {
 				return false
 			}
@@ -239,7 +241,7 @@ func ChangeLeader() {
 	client.Close()
 	for i:=0;i<len(Lista_Eguali);i++{
 		if Lista_Eguali[i].Name!= "" {
-			client, err = rpc.DialHTTP("tcp", Lista_Eguali[i].Ip[0]+":"+strconv.Itoa(Lista_Eguali[i].Port))
+			client, err = rpc.DialHTTP("tcp", Lista_Eguali[i].Name+":"+strconv.Itoa(Lista_Eguali[i].Port))
 			if err != nil {
 				log.Fatal("Contact node",Lista_Eguali[i],"index ",i,"fail",err)
 				return
@@ -256,7 +258,7 @@ func ChangeLeader() {
 	}
 }
 func takeMapData() {
-	client, err := rpc.DialHTTP("tcp", Leader.Ip[0]+":"+strconv.Itoa(Leader.Port))
+	client, err := rpc.DialHTTP("tcp", Leader.Name+":"+strconv.Itoa(Leader.Port))
 	if err != nil {
 		log.Fatal("Contact Leader fail in takeMyData",err)
 		return
@@ -274,16 +276,23 @@ func main() {
 	init_Node()
 	myMap = make(map[int]string)
 	myPrecedente, mySuccessivo = init_registration()
-	if myPrecedente.Name == "" && myPrecedente.Port == 0 {
-		myPrecedente = myNode
-		mySuccessivo = myNode
-		init_fingerTable()
+	if isReplica==false {
+		if myPrecedente.Name == "" && myPrecedente.Port == 0 {
+			myPrecedente = myNode
+			mySuccessivo = myNode
+			init_fingerTable()
+		} else {
+			init_fingerTable()
+			comunicationToPrecedente()
+			comunicationToSuccessivo()
+		}
 	} else {
-		init_fingerTable()
-		comunicationToPrecedente()
-		comunicationToSuccessivo()
-	}
-	if isReplica {
+		if myPrecedente.Name == "" && myPrecedente.Port == 0 {
+			myPrecedente = myNode
+			mySuccessivo = myNode
+		} else {
+			init_fingerTable()
+		}
 		fmt.Println("Obtain Map")
 		takeMapData()
 		fmt.Println(myMap)
@@ -296,7 +305,6 @@ func main() {
 		log.Fatal("listen error:", e)
 	}
 	ChangeStatus()
-	go finger_Table()
 	go http.Serve(l, nil)
 	for true {
 		if isReplica {
@@ -305,9 +313,21 @@ func main() {
 				if algoritmoBullyInverso() {
 					ChangeLeader()
 					isReplica=false
+					myPrecedente, mySuccessivo = init_registration()
+					if myPrecedente.Name == "" && myPrecedente.Port == 0 {
+						myPrecedente = myNode
+						mySuccessivo = myNode
+						init_fingerTable()
+					} else {
+						init_fingerTable()
+						comunicationToPrecedente()
+						comunicationToSuccessivo()
+					}
 					fmt.Println("Ora dovrei diventare io il leader")
 				}
 			}
+		} else {
+			finger_Table()
 		}
 		time.Sleep(5 * time.Second)
 	}

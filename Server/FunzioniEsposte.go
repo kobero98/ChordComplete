@@ -18,7 +18,6 @@ func checkKey(key int,precedente int,successivo int)bool{
 }
 
 func nodeToContact(key int) Node{
-	fmt.Println("myFinger Table: ",FingerTable)
 	i:=0
 	if checkKey(key,myNode.Index,FingerTable[0].Index){
 		return FingerTable[0]
@@ -41,9 +40,7 @@ func calcolo_hash(text string) int {
 		test[i%x] = hash[i] ^ test[i%x]
 	}
     result :=0
-	//DA MODIFICARE
 	for i =0; i < x; i++{
-
 		result = result + int(test[i])<<(8*i)
 	}
 	return result
@@ -69,7 +66,7 @@ func (t *ChordNode) Remove(key *int, reply *string) error {
 		*reply = str
 		return nil
 	} else {
-		client, err := rpc.DialHTTP("tcp", mySuccessivo.Ip[0]+":"+strconv.Itoa(mySuccessivo.Port))
+		client, err := rpc.DialHTTP("tcp", mySuccessivo.Name+":"+strconv.Itoa(mySuccessivo.Port))
 		if err != nil {
 			log.Fatal("dialing:", err)
 		}
@@ -98,7 +95,7 @@ func (t *ChordNode) Get(key *int, reply *string) error {
 	} else {
 		appNode:=nodeToContact(*key)
 		fmt.Println(appNode)
-		client, err := rpc.DialHTTP("tcp", appNode.Ip[0]+":"+strconv.Itoa(appNode.Port))
+		client, err := rpc.DialHTTP("tcp", appNode.Name+":"+strconv.Itoa(appNode.Port))
 		if err != nil {
 			myPrecedente, mySuccessivo = init_registration()
 			fmt.Println("ri ottentimento del precedente e del successivo")
@@ -117,7 +114,7 @@ func (t *ChordNode) UpdateReplica(param *ParamUpdateReplica,reply *int) error {
 func updateReplicaBase(key int, parola string){
 	i:=0
 	for i<len(Lista_Eguali){
-		client, err := rpc.DialHTTP("tcp", Lista_Eguali[i].Ip[0]+":"+strconv.Itoa(Lista_Eguali[i].Port))
+		client, err := rpc.DialHTTP("tcp", Lista_Eguali[i].Name+":"+strconv.Itoa(Lista_Eguali[i].Port))
 		if err != nil {
 			//gestire errore uno dei nodi crasha
 			fmt.Println("Uno dele repliche non é più up ",err,)
@@ -153,7 +150,7 @@ func (t *ChordNode) Put(parola *string, reply *int) error {
 		//PrintFingerTable()
 		appNode:=nodeToContact(key)
 		fmt.Println("Nodo scelto: ",appNode," IP:",appNode.Ip[0],"port: ",appNode.Port)
-		client, err := rpc.DialHTTP("tcp", appNode.Ip[0]+":"+strconv.Itoa(appNode.Port))
+		client, err := rpc.DialHTTP("tcp", appNode.Name+":"+strconv.Itoa(appNode.Port))
 		if err != nil {
 			myPrecedente, mySuccessivo = init_registration()
 			fmt.Println("ri ottentimento del precedente e del successivo")

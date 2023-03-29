@@ -139,7 +139,7 @@ func ControlloEsistenzaLeader(index int) int {
 	return -1
 }
 func updateListaReplica(nodeToContact Node,nodeToPass Node) int {
-	client, err := rpc.DialHTTP("tcp", nodeToContact.Ip[0]+":"+strconv.Itoa(nodeToContact.Port))
+	client, err := rpc.DialHTTP("tcp", nodeToContact.Name+":"+strconv.Itoa(nodeToContact.Port))
 	if err != nil {
 		fmt.Println("ri-ottentimento del precedente e del successivo")
 		return -1
@@ -259,7 +259,7 @@ func heartBit() {
 	for true {
 		for i := 0; i < len(lista_nodi); i++ {
 			if lista_nodi[i].status == 1 {
-				client, err := rpc.DialHTTP("tcp", lista_nodi[i].nodo.Ip[0]+":"+strconv.Itoa(lista_nodi[i].nodo.Port))
+				client, err := rpc.DialHTTP("tcp", lista_nodi[i].nodo.Name+":"+strconv.Itoa(lista_nodi[i].nodo.Port))
 				if err != nil {
 					fmt.Println("Elemento rimosso 1")
 					remove_elemento(lista_nodi[i])
@@ -324,6 +324,13 @@ func (t *Manager) ChangeLeader(newNode *Node,reply *int)error{
 	}
 	return nil
 }
+func threadStampa() {
+	for true {
+		//fmt.Println(lista_nodi)
+		printList()
+		time.Sleep(5 * time.Second)
+	}
+}
 func main() {
 	Num_Repl,_ =strconv.Atoi(os.Getenv("REPLICHE")) 
 	fmt.Println("inizio programma in go")
@@ -335,6 +342,7 @@ func main() {
 	if e != nil {
 		log.Fatal("listen error:", e)
 	}
+	go threadStampa()
 	go heartBit()
 	http.Serve(l, nil)
 	fmt.Println("fine programma in go")

@@ -12,7 +12,7 @@ func (t *ChordNode) ObtainNode(key *int, node *Node) error {
 		*node = myNode
 		return nil
 	} else {
-		client, err := rpc.DialHTTP("tcp", mySuccessivo.Ip[0]+":"+strconv.Itoa(mySuccessivo.Port))
+		client, err := rpc.DialHTTP("tcp", mySuccessivo.Name+":"+strconv.Itoa(mySuccessivo.Port))
 		if err != nil {
 			//devo riottenre il prec e il succ
 			myPrecedente, mySuccessivo = init_registration()
@@ -29,11 +29,13 @@ func (t *ChordNode) ObtainNode(key *int, node *Node) error {
 }
 //funzione che permette di impostare il precedente
 func (t *ChordNode) Precedente(node *Node, reply *int) error {
+
 	myPrecedente = *node
 	*reply = 1
 	return nil}
 //funzione che permette di impostare il successivo
 func (t *ChordNode) Successivo(node *Node, reply *int) error {
+
 	mySuccessivo = *node
 	return nil}
 //funzione di HeartBit sostanzialmente non fa nulla 
