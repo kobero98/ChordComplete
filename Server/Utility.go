@@ -1,5 +1,10 @@
 package main
 
+const (
+	DELETE = 0
+	PUT = 1
+	
+)
 type Node struct {
 	Name       string
 	Ip         []string
@@ -22,4 +27,5 @@ type ParamRegister struct {
 type ParamUpdateReplica struct{
 	Key int
 	Parola string
+	Flag int
 }

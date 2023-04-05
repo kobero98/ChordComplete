@@ -55,28 +55,6 @@ func checkMyKey2(key int) bool {
 	}
 	return key > myPrecedente.Index || key <= myNode.Index
 }
-
-//funzione che rimuove una chiave dal nodo
-//ci devo pensare un attimo
-func (t *ChordNode) Remove(key *int, reply *string) error {
-	fmt.Println("mi hanno contattato per rimuove la kiave: ", *key)
-	fmt.Println("io mi occupo di: ", myPrecedente.Index, myNode.Index)
-	if checkMyKey2(*key) {
-		str := myMap[*key]
-		*reply = str
-		return nil
-	} else {
-		client, err := rpc.DialHTTP("tcp", mySuccessivo.Name+":"+strconv.Itoa(mySuccessivo.Port))
-		if err != nil {
-			log.Fatal("dialing:", err)
-		}
-		err = client.Call("ChordNode.Get", key, reply)
-		if err != nil {
-			log.Fatal("arith error:", err)
-		}
-	}
-	return nil
-}
 //funzione che prende una risorsa in base alla chiave
 func (t *ChordNode) Get(key *int, reply *string) error {
 	if isReplica {
@@ -108,10 +86,15 @@ func (t *ChordNode) Get(key *int, reply *string) error {
 	return nil
 }
 func (t *ChordNode) UpdateReplica(param *ParamUpdateReplica,reply *int) error {
-	myMap[param.Key]=param.Parola
+	if param.Flag==PUT {
+		myMap[param.Key]=param.Parola
+	} else {
+		delete(myMap,param.Key)
+	}
+	fmt.Println("Sono una replica Questa é la mia mappa dopo l'update",myMap)
 	return nil
 }
-func updateReplicaBase(key int, parola string){
+func updateReplicaBase(key int, parola string,flag int){
 	i:=0
 	for i<len(Lista_Eguali){
 		client, err := rpc.DialHTTP("tcp", Lista_Eguali[i].Name+":"+strconv.Itoa(Lista_Eguali[i].Port))
@@ -123,6 +106,7 @@ func updateReplicaBase(key int, parola string){
 		var param ParamUpdateReplica
 		param.Key=key
 		param.Parola=parola
+		param.Flag=flag
 		var reply int
 		err = client.Call("ChordNode.UpdateReplica", &param, &reply)
 		if err != nil {
@@ -144,8 +128,9 @@ func (t *ChordNode) Put(parola *string, reply *int) error {
 	fmt.Println("la chiave  é ", key)
 	fmt.Println("io mi occupo di: ", myPrecedente.Index+1, myNode.Index)
 	if checkMyKey2(key) {
-		updateReplicaBase(key,*parola)
+		updateReplicaBase(key,*parola,PUT)
 		myMap[key] = *parola
+		fmt.Println("Sono un Leader questa é la mia mappa dopo l'update",myMap)
 	} else {
 		//PrintFingerTable()
 		appNode:=nodeToContact(key)
@@ -165,6 +150,41 @@ func (t *ChordNode) Put(parola *string, reply *int) error {
 		}
 	}
 	*reply = key
+	return nil
+}
+//funzione che rimuove una chiave dal nodo
+func (t *ChordNode) Remove(key *int, reply *string) error {
+	//remove Valore
+	if isReplica {
+		*reply="fail"
+		return nil
+	}
+	fmt.Println("mi hanno contattato per rimuovere la chiave: ", *key)
+	fmt.Println("io mi occupo di: ", myPrecedente.Index+1, myNode.Index)
+	if checkMyKey2(*key) {
+		updateReplicaBase(*key,"",DELETE)
+		delete(myMap,*key)
+	} else {
+		//PrintFingerTable()
+		appNode:=nodeToContact(*key)
+		fmt.Println("Nodo scelto: ",appNode," IP:",appNode.Ip[0],"port: ",appNode.Port)
+		client, err := rpc.DialHTTP("tcp", appNode.Name+":"+strconv.Itoa(appNode.Port))
+		if err != nil {
+			myPrecedente, mySuccessivo = init_registration()
+			fmt.Println("ri ottentimento del precedente e del successivo")
+			*reply = "fail"
+			return err
+		}
+		err = client.Call("ChordNode.Remove", key, reply)
+		if err != nil {
+			myPrecedente, mySuccessivo = init_registration()
+			log.Fatal("arith error:", err)
+			fmt.Println("ri ottentimento del precedente e del successivo")
+			*reply = "fail"
+			return err
+		}
+	}
+	*reply = "success"
 	return nil
 }
 
