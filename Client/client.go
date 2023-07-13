@@ -40,7 +40,6 @@ func main() {
 	if err1 != nil {
 		log.Fatal("dialing:", err)
 	}
-
 	if x == 2 {
 		reply, _ = strconv.Atoi(os.Args[2])
 		var parola2 string
