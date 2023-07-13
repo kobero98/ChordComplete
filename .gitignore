@@ -1,4 +1,4 @@
-Docker-compose.yaml
+docker-compose.yml
 /Server/nodo
 /server/server_register
 /Client/client

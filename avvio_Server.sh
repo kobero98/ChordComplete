@@ -18,7 +18,7 @@ do
 done
 if [[ "$C1" == "1" && "$C2" == "1" ]] 
 then
-    rm Docker-compose.yaml;
+    rm docker-compose.yml;
     python3 dockerComposeCreator.py $x $y $z;
     docker-compose build;
     docker-compose up;

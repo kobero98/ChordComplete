@@ -2,7 +2,7 @@ import sys
 
 def create(Num_Nodi,Num_Repliche,Num_Bit):
 	numRep=str(Num_Repliche)
-	file=open("Docker-compose.yaml","w")
+	file=open("docker-compose.yml","w")
 	file.write("version: \"3.9\"\n")
 	file.write("services:\n")
 	file.write("  registration_server:\n")
