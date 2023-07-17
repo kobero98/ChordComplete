@@ -77,11 +77,15 @@ func (t *ChordNode) Get(key *int, reply *string) error {
 		if err != nil {
 			myPrecedente, mySuccessivo = init_registration()
 			fmt.Println("ri ottentimento del precedente e del successivo")
+			return err
 		}
 		err = client.Call("ChordNode.Get", key, reply)
 		if err != nil {
 			log.Fatal("arith error:", err)
+			client.Close()
+			return err
 		}
+		client.Close()
 	}
 	return nil
 }
@@ -146,8 +150,10 @@ func (t *ChordNode) Put(parola *string, reply *int) error {
 			myPrecedente, mySuccessivo = init_registration()
 			log.Fatal("arith error:", err)
 			fmt.Println("ri ottentimento del precedente e del successivo")
+			client.Close()
 			return err
 		}
+		client.Close()
 	}
 	*reply = key
 	return nil
@@ -181,8 +187,10 @@ func (t *ChordNode) Remove(key *int, reply *string) error {
 			log.Fatal("arith error:", err)
 			fmt.Println("ri ottentimento del precedente e del successivo")
 			*reply = "fail"
+			client.Close()
 			return err
 		}
+		client.Close()
 	}
 	*reply = "success"
 	return nil

@@ -29,7 +29,6 @@ func (t *ChordNode) ObtainNode(key *int, node *Node) error {
 }
 //funzione che permette di impostare il precedente
 func (t *ChordNode) Precedente(node *Node, reply *int) error {
-
 	myPrecedente = *node
 	*reply = 1
 	return nil}
@@ -40,8 +39,9 @@ func (t *ChordNode) Successivo(node *Node, reply *int) error {
 	return nil}
 //funzione di HeartBit sostanzialmente non fa nulla 
 func (t *ChordNode) HeartBit(answer *int, reply *int) error {
-	*reply = 1
-	return nil}
+	*reply = 3
+	return nil
+}
 func (t *ChordNode) UpdateList(newNode *Node,reply *int) error{
 	Lista_Eguali=append(Lista_Eguali,*newNode)
 	return nil

@@ -189,20 +189,44 @@ func ChangeStatus() {
 	}
 	client.Close()
 }
+// func heartBitReplica() bool {
+// 	client, err := rpc.DialHTTP("tcp", Leader.Ip[0]+":"+strconv.Itoa(Leader.Port))
+// 	if err != nil {
+// 		fmt.Println("il nodo é morto")
+// 		return false
+// 	}
+// 	var reply int
+// 	var answer int
+// 	answer = myNode.PortExtern
+// 	err = client.Call("ChordNode.HeartBit", &answer, &reply)
+// 	if err != nil {
+// 		client.Close()
+// 		fmt.Println("il nodo é morto")
+// 		return false
+// 	}
+// 	fmt.Println("la risposta é: ",reply)
+// 	client.Close()
+// 	return true
+// }
 func heartBitReplica() bool {
-	client, err := rpc.DialHTTP("tcp", Leader.Name+":"+strconv.Itoa(Leader.Port))
-	if err != nil {
-		fmt.Println("il nodo é morto")
+	interval,_:=time.ParseDuration("5s")
+	conn,err := net.DialTimeout("tcp", Leader.Ip[0]+":"+strconv.Itoa(Leader.Port),interval)
+	if err!= nil{
 		return false
 	}
+	client := rpc.NewClient(conn)
 	var reply int
 	var answer int
+	answer = myNode.PortExtern
 	err = client.Call("ChordNode.HeartBit", &answer, &reply)
 	if err != nil {
 		client.Close()
+		fmt.Println("il nodo é morto")
 		return false
 	}
+	fmt.Println("la risposta é: ",reply)
 	client.Close()
+	conn.Close()
 	return true
 }
 func algoritmoBullyInverso() bool {
@@ -263,7 +287,6 @@ func takeMapData() {
 		log.Fatal("Contact Leader fail in takeMyData",err)
 		return
 	}
-
 	err = client.Call("ChordNode.ObtainMapData", &myNode, &myMap)
 	if err != nil {
 		log.Fatal("Fail call ObtainMapData",err)
