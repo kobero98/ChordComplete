@@ -22,7 +22,7 @@ then
     rm docker-compose.yml;
     python3 dockerComposeCreator.py $x $y $z;
     docker-compose build;
-    docker-compose up -d;
+    docker-compose up;
 else
     echo "bash avvio.sh -x [numero_nodi] [-y [numero_repliche]] [-z [Dimensione dell'anello]]"
 fi
