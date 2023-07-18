@@ -26,5 +26,5 @@ then
     echo "BIT="$z>>env.list
     docker run -p $y:8005 -itd --name nodo$y --network network1234 --hostname nodo$y --env-file env.list kobnodo
 else
-    echo "bash avvio.sh -x [numero_nodi] [-y [numero_repliche]] [-z [Dimensione dell'anello]]"
+    echo "bash avvio.sh -x [numero_nodo] [-y [IDENTIFICATIVO]] [-z [Dimensione dell'anello]]"
 fi
