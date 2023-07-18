@@ -54,7 +54,7 @@ func init_registration() (Node, Node) {
 		if Leader.PortExtern != myNode.PortExtern{
 			//in questo caso il nodo main non ha ancora cambiato il suo stato in attivo e dobbiamo aspettare che lo faccia
 			//dormiamo per un tot e riavviamo la funzione
-			time.Sleep(10 * time.Second)
+			time.Sleep(5 * time.Second)
 			return init_registration()
 			//return nil,nil
 		}
@@ -150,8 +150,7 @@ func comunicationToSuccessivo() {
 		//log.Fatal("mynode ",myNode,"dialing:", err)
 		return
 	}
-	var reply int
-	err = client.Call("ChordNode.Precedente", &myNode, &reply)
+	err = client.Call("ChordNode.Precedente", &myNode, &myMap)
 	if err != nil {
 		fmt.Println("Errore comunicazione col successivo",err)
 		client.Close()
@@ -189,25 +188,6 @@ func ChangeStatus() {
 	}
 	client.Close()
 }
-// func heartBitReplica() bool {
-// 	client, err := rpc.DialHTTP("tcp", Leader.Ip[0]+":"+strconv.Itoa(Leader.Port))
-// 	if err != nil {
-// 		fmt.Println("il nodo é morto")
-// 		return false
-// 	}
-// 	var reply int
-// 	var answer int
-// 	answer = myNode.PortExtern
-// 	err = client.Call("ChordNode.HeartBit", &answer, &reply)
-// 	if err != nil {
-// 		client.Close()
-// 		fmt.Println("il nodo é morto")
-// 		return false
-// 	}
-// 	fmt.Println("la risposta é: ",reply)
-// 	client.Close()
-// 	return true
-// }
 func heartBitReplica() bool {
 	interval,_:=time.ParseDuration("5s")
 	conn,err := net.DialTimeout("tcp", Leader.Ip[0]+":"+strconv.Itoa(Leader.Port),interval)

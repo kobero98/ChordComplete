@@ -28,15 +28,24 @@ func (t *ChordNode) ObtainNode(key *int, node *Node) error {
 	return nil
 }
 //funzione che permette di impostare il precedente
-func (t *ChordNode) Precedente(node *Node, reply *int) error {
+func (t *ChordNode) Precedente(node *Node, reply *map[int]string) error {
+	map_return := make(map[int]string)
+	if checkMyKey2(node.Index){
+		for key,parola := range myMap{
+			if key <= node.Index {
+				map_return[key]=parola
+				delete(myMap,key)
+			}
+		}
+	*reply = map_return
+	}
 	myPrecedente = *node
-	*reply = 1
 	return nil}
 //funzione che permette di impostare il successivo
 func (t *ChordNode) Successivo(node *Node, reply *int) error {
-
 	mySuccessivo = *node
-	return nil}
+	return nil
+}
 //funzione di HeartBit sostanzialmente non fa nulla 
 func (t *ChordNode) HeartBit(answer *int, reply *int) error {
 	*reply = 3
