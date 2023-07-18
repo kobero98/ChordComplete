@@ -21,8 +21,8 @@ if [[ "$C1" == "1" && "$C2" == "1" ]]
 then
     rm docker-compose.yml;
     python3 dockerComposeCreator.py $x $y $z;
-    docker compose build;
-    docker compose up;
+    docker-compose build;
+    docker-compose up -d;
 else
     echo "bash avvio.sh -x [numero_nodi] [-y [numero_repliche]] [-z [Dimensione dell'anello]]"
 fi
