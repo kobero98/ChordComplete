@@ -33,6 +33,7 @@ func nodeToContact(key int) Node{
 }
 func calcolo_hash(text string) int {
 	hash := md5.Sum([]byte(text))
+	fmt.Println(NBit)
 	x:=int(NBit/8)
 	test:= make([]byte,x)
 	var i int

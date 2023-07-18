@@ -103,21 +103,9 @@ func get_PrecSucc(n Node) (Node, Node) {
 		}
 	}
 	return prec,succ
-	/*
-	for i := 0; i < len(lista_nodi); i++ {
-		if n.Index == lista_nodi[i].nodo.Index {
-			if i == 0 {
-				return lista_nodi[len(lista_nodi)-1].nodo, lista_nodi[(i+1)%len(lista_nodi)].nodo
-			}
-			//fmt.Println("valore lista ", (i-1)%len(lista_nodi), (i+1)%len(lista_nodi))
-			return lista_nodi[(i-1)%len(lista_nodi)].nodo, lista_nodi[(i+1)%len(lista_nodi)].nodo
-		}
-	}
-	return n, n
-	*/
+
 }
 func (t *Manager) ChangeStatus(node *Node, reply *int) error {
-	//fmt.Println("ricevuto un cambio di stato dal nodo: ", node.Index)
 	for i := 0; i < len(lista_nodi); i++ {
 		if lista_nodi[i].nodo.Index == node.Index {
 			lista_nodi[i].status = 1
@@ -147,7 +135,6 @@ func updateListaReplica(nodeToContact Node,nodeToPass Node) int {
 	var x int
 	err = client.Call("ChordNode.UpdateList", &nodeToPass, &x)
 	if err != nil {
-		//log.Fatal("arith error:", err)
 		fmt.Println("ri ottentimento del precedente e del successivo")
 		return -1
 	}
